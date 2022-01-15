@@ -1,5 +1,5 @@
 """Cash flow analysis."""
 __all__ = ['VERSION', 'Transaction']
-from cash-flow-analysis.transaction import Transaction
+from cashflowanalysis.transaction import Transaction
 
 VERSION = '0.0.1'
