@@ -35,6 +35,7 @@
 	// "forwardPorts": [],
 
 	// Uncomment the next line to run commands after the container is created - for example installing curl.
+	"postCreateCommand": "pip install -e .[dev]",
 	// "postCreateCommand": "apt-get update && apt-get install -y curl",
 
 	// Uncomment when using a ptrace-based debugger like C++, Go, and Rust
@@ -48,5 +49,11 @@
 
 	// This mounts in a folder to work with code.
 	// This mounts in a folder to contain and use secrets without embedding them in an image.
-	"mounts": ["source=projects,target=/projects,type=volume", "source=secrets,target=/secrets,type=volume"]
+	"mounts": [
+		"source=secrets,target=/secrets,type=volume",
+	],
+
+	// Navigate to the project
+	"workspaceMount": "source=projects,target=/projects,type=volume",
+	"workspaceFolder": "/projects/cash-flow-analysis"
 }

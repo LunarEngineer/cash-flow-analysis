@@ -12,7 +12,7 @@ class Simulator():
         simulation_length: int,
         number_of_simulations: int,
         start_time: Optional[datetime],
-        transactions: Iterable[Mapping[str]]
+        transactions: Iterable[Mapping[str, str]]
     ) -> None:
         """Set up simulator class."""
         self._i = 0
