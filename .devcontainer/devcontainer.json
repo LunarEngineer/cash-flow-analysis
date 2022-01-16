@@ -52,8 +52,4 @@
 	"mounts": [
 		"source=secrets,target=/secrets,type=volume",
 	],
-
-	// Navigate to the project
-	"workspaceMount": "source=projects,target=/projects,type=volume",
-	"workspaceFolder": "/projects/cash-flow-analysis"
 }
