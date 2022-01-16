@@ -3,3 +3,7 @@
 
 # Packaging artifacts
 *.egg-info*
+.vscode/settings.json
+
+# pyc artifacts
+**.pyc

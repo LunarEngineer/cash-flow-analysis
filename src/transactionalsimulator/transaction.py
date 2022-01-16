@@ -3,9 +3,15 @@
 A transaction can either be a debit, or a credit.
 
 This class does two things:
-1. When started this class does all the heavy lifting to set up the data structure for a transaction object capable of simulating an arbitrary number of transactions.
-2. When called with an input vector, an identically shaped output vector, and a 'timestamp' object this class is capable of taking in time formatted input (i.e. day=18)
+1. When started this class does all the heavy lifting to set up the data
+   structure for a transaction object capable of simulating an arbitrary
+   number of transactions dependent on timestep input.
+2. When called with an input vector, an identically shaped output vector, and
+   a 'timestamp' object this class is capable of taking in time formatted
+   input (i.e. day=18), deciding if it needs to trigger, and 
 """
+import inspect
+from transactionalsimulator import types as ttype
 from typing import Optional
 from numpy.random import default_rng
 
@@ -14,9 +20,9 @@ __DISTRIBUTIONS__ = {
     'binomial',
     'chisquare',
     'dirichlet',
-	'exponential',
+    'exponential',
     'f',
-	'gamma',
+    'gamma',
     'geometric',
     'gumbel',
     'hypergeometric',
@@ -48,14 +54,25 @@ __DISTRIBUTIONS__ = {
     'zipf'
 }
 
+
 class Transaction():
     """Do nothing."""
-    def __init__(self, number_of_simulated_events: int = 1, seed: Optional[int] = None):
+    def __init__(
+        self,
+        simulator: 'Simulator',
+        seed: Optional[int] = None,
+        start_time: ttype.time = None,
+        frequency: ttype.time = None
+    ):
         """Build a transaction model."""
-        self._n = number_of_simulated_events
+        self._simulator = simulator
+        self._n = simulator._n
+        self._m = simulator._m
         self._seed = seed
         self._rng = default_rng(seed)
-        # Here we need to pick from the numpy random functions appropriately based on input.
+        self._f = frequency
+        # Here we need to pick from the numpy
+        # random functions appropriately based on input.
         # integers(low[, high, size, dtype, endpoint])
         # random([size, dtype, out])
         # choice(a[, size, replace, p, axis, shuffle])
