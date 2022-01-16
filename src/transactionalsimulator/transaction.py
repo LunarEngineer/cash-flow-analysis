@@ -8,7 +8,8 @@ This class does two things:
    number of transactions dependent on timestep input.
 2. When called with an input vector, an identically shaped output vector, and
    a 'timestamp' object this class is capable of taking in time formatted
-   input (i.e. day=18), deciding if it needs to trigger, and 
+   input (i.e. day=18), deciding if it needs to trigger, and appropriately
+   running internal mechanisms.
 """
 import inspect
 from transactionalsimulator import types as ttype
