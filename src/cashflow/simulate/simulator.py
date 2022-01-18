@@ -5,14 +5,15 @@ from datetime import datetime
 from typing import Iterable, Optional, Mapping
 
 
-class Simulator():
+class Simulator:
     """Does nothing, yet."""
+
     def __init__(
         self,
         simulation_length: int,
         number_of_simulations: int,
         start_time: Optional[datetime],
-        transactions: Iterable[Mapping[str, str]]
+        transactions: Iterable[Mapping[str, str]],
     ) -> None:
         """Set up simulator class."""
         self._i = 0
@@ -24,6 +25,7 @@ class Simulator():
         """Build transactions"""
         # Each time has a month, day, year
         # When the transaction is read in the tr
+        # Validate unique names
         pass
 
     def step():
