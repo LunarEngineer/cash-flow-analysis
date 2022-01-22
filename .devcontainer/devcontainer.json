@@ -20,12 +20,11 @@
 		"python.linting.enabled": true,
 		"python.linting.pylintEnabled": true,
 		// "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
-		// "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
+		"python.formatting.blackPath": "/projects/cash-flow-analysis/.tox/blackchecks/bin/black",
 		// "python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
-		// "python.linting.banditPath": "/usr/local/py-utils/bin/bandit",
+		"python.linting.banditPath": "/projects/cash-flow-analysis/.tox/securitychecks/bin/bandit",
 		"python.linting.flake8Path": "/projects/cash-flow-analysis/.tox/stylechecks/bin/flake8",
 		"python.linting.mypyPath": "/projects/cash-flow-analysis/.tox/typechecks/bin/mypy",
-		"python.linting.pycodestylePath": "/projects/cash-flow-analysis/.tox/stylechecks/bin/pycodestyle",
 		// "python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
 		// "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint"
 	},
@@ -57,5 +56,6 @@
 	"mounts": [
 		"source=secrets,target=/secrets,type=volume",
 		"source=projects,target=/projects,type=volume",
+		"source=cashflowpipcache,target=/.cache/pip,type=volume"
 	],
 }

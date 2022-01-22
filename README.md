@@ -13,6 +13,13 @@ This is by no stretch of the imagination a replacement for a true simulation sof
 You should not be using this to replace something like SimPy.
 This is just a labor of love.
 
+## How does this work?
+
+Every transaction is a custom class which undertands:
+
+1. How to read a vector that represents 'current state' (1 x simulation width).
+2. How to appropriately update either the 'current state' or another simulation object.
+
 ## Custom CSS
 
 Jordan, please make me awesome custom CSS?

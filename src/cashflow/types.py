@@ -36,13 +36,23 @@ A frequency, in the terms of the simulation engine, can be one of a few things:
 * p_a (probabilistic aperiodic): This is a transaction that occurs
   probabilistically at irregularly scheduled intervals. It is reused.
 """
-from collections import namedtuple
+from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from typing import Iterable, Mapping, Union
 
-TimeStamp = namedtuple('TimeStamp', ['year', 'month', 'day', 'hour', 'minute', 'second'])
+
+@dataclass
+class TimeStamp:
+    year: int
+    month: int
+    day: int
+    hour: int
+    minute: int
+    second: int
+
+
 time = Union[datetime, date, Mapping[str, int], TimeStamp]
-frequency = Union[int, float, Iterable[Union[int, float, time, timedelta]]]
+frequency = Union[int, float, Iterable[Union[int, float, time, timedelta]], None]
 
 transaction_types = {
     "d_i",
