@@ -37,22 +37,18 @@ A frequency, in the terms of the simulation engine, can be one of a few things:
   probabilistically at irregularly scheduled intervals. It is reused.
 """
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
-from typing import Iterable, Mapping, Union
+from numpy import ndarray
+from typing import Iterable, Union
 
 
 @dataclass
 class TimeStamp:
-    year: int
-    month: int
-    day: int
-    hour: int
-    minute: int
-    second: int
+    """Holds information for a timestamp."""
+
+    index: ndarray
 
 
-time = Union[datetime, date, Mapping[str, int], TimeStamp]
-frequency = Union[int, float, Iterable[Union[int, float, time, timedelta]], None]
+frequency = Union[int, float, Iterable[Union[int, float]], None]
 
 transaction_types = {
     "d_i",
