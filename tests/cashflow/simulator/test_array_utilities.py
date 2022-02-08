@@ -1,13 +1,12 @@
 import pytest
-import numpy as np
 from src.cashflow.simulate import array_utilities as sau
 
 
 test_cases = [
-    (np.ones((100, 100, 100)), np.ones((100, 1, 100))),
-    (np.ones((100, 100, 100)), np.ones((100, 1))),
-    (np.ones((100, 100, 100)), np.ones((100))),
-    (np.ones((100, 100, 100)), np.ones((1))),
+    ((100, 100, 100), (100, 1, 100)),
+    ((100, 100, 100), (100, 1)),
+    ((100, 100, 100), (100,)),
+    ((100, 100, 100), (1,)),
 ]
 
 

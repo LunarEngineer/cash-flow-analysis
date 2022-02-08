@@ -13,13 +13,12 @@ This class does two things:
 """
 import hashlib
 import numpy as np
-from datetime import datetime, timedelta
 from numpy.random import default_rng
 from cashflow import types as cftypes
-from cashflow.simulate import error as cfserror
-from typing import Iterable, Optional, Type
+from cashflow.simulate import index as cfsi
+from typing import Iterable, Optional
 
-__all__ = ["Transaction", "_get_random_name"]
+__all__ = ["Transaction"]
 
 
 class Transaction:
@@ -29,7 +28,6 @@ class Transaction:
         self,
         simulation_length: int,
         simulation_width: int,
-        simulation_discretization: str,
         transaction_time: int = 0,
         seed: Optional[int] = None,
         frequency: Optional[cftypes.frequency] = None,
@@ -74,9 +72,9 @@ class Transaction:
             # But if it's not we'll just give it a *pretty random* name.
             name = _get_random_name(self._rng.integers(low=0, high=int(1e6)))
         self._name = name
-        # Declare where
+        # Declare where this transaction will fire.
         self._presence = _get_indices(
-            self,
+            transaction=self,
         )
 
 
@@ -87,7 +85,15 @@ def _get_transaction_type(frequency: cftypes.frequency) -> str:
     `cashflow.simulate.types`
 
     This essentially boils down to {discrete | probabilistic} and
-    {periodic | aperiodic}.
+    {periodic | aperiodic | instantaneous}.
+
+    Glossary
+    --------
+    discrete: It happens at a specified discrete timestep.
+    probabilistic: It *could* happen at a specified timestep.
+    periodic: It has a cycle with a period / wavelength.
+    aperiodic: It has repetition with no pattern.
+    intantaneous: It has no repetition.
 
     Parameters
     ----------
@@ -108,25 +114,13 @@ def _get_transaction_type(frequency: cftypes.frequency) -> str:
     'd_p'
 
     Floats are directly translated as a *probability* and are thus
-    probabilistic and periodic.
+    probabilistic and instantaneous.
     >>> _get_transaction_type(2.)
-    'p_p'
+    'p_i'
 
     No frequency? No problem! It's discrete and only happens once.
     >>> _get_transaction_type(None)
     'd_i'
-
-    What if you pass an object interpretable as a datetime?
-    It's discrete and *aperiodic*.
-    >>> from datetime import datetime
-    >>> _get_transaction_type(datetime.now())
-    'd_a'
-
-    Ok, what about an object interpretable as a timedelta?
-    It's discrete and *periodic*.
-    >>> from datetime import timedelta
-    >>> _get_transaction_type(timedelta(hours=2))
-    'd_p'
 
     What about lists or arrays of ints?
     >>> import numpy as np
@@ -143,15 +137,12 @@ def _get_transaction_type(frequency: cftypes.frequency) -> str:
     if frequency is None:
         # I'm only going to happen once!
         ttype = "d_i"
-    elif isinstance(frequency, datetime):
-        # I'll happen once more
-        ttype = "d_a"
-    elif isinstance(frequency, (int, timedelta)):
+    elif isinstance(frequency, int):
         # I'll happen periodically and reliably.
         ttype = "d_p"
     elif isinstance(frequency, float):
-        # A float occurs probabilistically periodically.
-        ttype = "p_p"
+        # A float occurs probabilistically and instantaneously.
+        ttype = "p_i"
     elif isinstance(frequency, np.ndarray):
         if np.issubdtype(frequency.dtype, np.floating):
             # Floats are probabilistic, an array is aperiodic.
@@ -160,7 +151,7 @@ def _get_transaction_type(frequency: cftypes.frequency) -> str:
             # Ints are discrete, an array is aperiodic.
             ttype = "d_a"
     elif isinstance(frequency, Iterable):
-        if all(map(lambda x: isinstance(x, (int, timedelta)), frequency)):
+        if all(map(lambda x: isinstance(x, int), frequency)):
             # These are going to happen aperiodically.
             ttype = "d_a"
         elif all(map(lambda x: isinstance(x, float), frequency)):
@@ -197,20 +188,17 @@ def _get_random_name(seed: int) -> str:
 
 
 def _get_indices(transaction: Transaction) -> np.ndarray:
-    """Return expected transaction indices.
+    r"""Return expected transaction indices.
 
     This function produces a two dimensional Numpy array of expected
     indices in which a transaction will occur.
-    If this is:
-
-    All transactions require the simulation start time.
 
     * d_i: A one time event only requires the start time of the
         simulation and the start time of the transaction.
     * d_p: A discrete and periodic event which requires a start time
         and period.
     * d_a: This is a discrete and aperiodic event. We need to figure that out.
-    * p_i: This is probabilistic and instantaneous. We knly need to know the
+    * p_i: This is probabilistic and instantaneous. We only need to know the
      start time and the random function.
     * p_p: This is probabilistic and periodic: We need to know the start time,
      the period, and the random function.
@@ -222,8 +210,70 @@ def _get_indices(transaction: Transaction) -> np.ndarray:
 
     Examples
     --------
-    >>> print(1)
-    1
+
+    This simple example shows a discrete and instantaneous event.
+    >>> annual_raise = Transaction(
+    ...     simulation_length=10,
+    ...     simulation_width=5,
+    ...     transaction_time=2,
+    ...     seed=0,
+    ...     name='Annual raise'
+    ... )
+    >>> _get_indices(annual_raise)
+    2
+
+    This example includes a frequency and thus becomes periodic.
+    >>> gas_bill = Transaction(
+    ...     simulation_length=10,
+    ...     simulation_width=5,
+    ...     transaction_time=2,
+    ...     seed=0,
+    ...     name='Utilities Bill',
+    ...     frequency=1,
+    ... )
+    >>> _get_indices(gas_bill)
+    array([2, 3, 4, 5, 6, 7, 8, 9])
+
+    This example includes a float frequency and thus is probabilistic.
+    We're going to draw a random uniform for this timestamp in all
+    parallel runs of the simulation, then we're going to test if the
+    random uniform is below the threshold. If it is we will fire in
+    this timestep and so we retain the index.
+    >>> gas_bill = Transaction(
+    ...     simulation_length=10,
+    ...     simulation_width=5,
+    ...     transaction_time=2,
+    ...     seed=0,
+    ...     name='Utilities Bill',
+    ...     frequency=.7,
+    ... )
+    >>> gas_inds = _get_indices(gas_bill)
+
+    Notice that the indices for the gas bill are *two dimensional*.
+    >>> gas_inds.ndim
+    2
+
+    Each one of these indices can be read [i, j] where i \in (1, n) and
+    j \in (1, m).
+    >>> np.amax(gas_inds[:, 1])
+    3
+    >>> np.amax(gas_inds[:, 0])
+    9
+
+    How many of the indices were drawn out of the 50 total?
+    >>> gas_inds.shape
+    (28, 2)
+
+    Now we're going to talk about a one-time event which *might* happen.
+    In the fifth timestep you *might* get promoted. Let's call it a 70% chance.
+    >>> promotion_2022 = Transaction(
+    ...     simulation_length=10,
+    ...     simulation_width=5,
+    ...     transaction_time=2,
+    ...     seed=0,
+    ...     name='2022 Promotion',
+    ...     frequency=.7,
+    ... )
     """
     # What's the transactions basic type?
     t_type = transaction._transaction_type
@@ -231,70 +281,32 @@ def _get_indices(transaction: Transaction) -> np.ndarray:
         # If instantaneous and discrete it's pretty easy!
         transaction_indices = transaction.t_0
     elif t_type == "d_p":
-        transaction_indices = _get_indices_periodic(
+        # If it's periodic and discrete it's still pretty easy.
+        transaction_indices = cfsi._get_indices_periodic(
             start_index=transaction.t_0,
             simulation_length=transaction._n,
+            simulation_width=transaction._m,
             freq=transaction._f,
         )
     elif t_type == "d_a":
         raise NotImplementedError
     elif t_type == "p_i":
-        raise NotImplementedError
+        # If instantaneous and probabilistic it's pretty easy!
+        _rand = transaction._rng.random(transaction._m).reshape(1, -1)
+        transaction_indices = np.stack(
+            [np.arange(transaction._n), np.argwhere(_rand < transaction._f)], axis=1
+        )
     elif t_type == "p_p":
-        transaction_indices = _get_indices_periodic(
+        # If it's periodic and probabilistic is's still pretty easy.
+        transaction_indices = cfsi._get_indices_periodic(
             start_index=transaction.t_0,
             simulation_length=transaction._n,
+            simulation_width=transaction._m,
             freq=transaction._f,
+            rng=transaction._rng,
         )
     elif t_type == "p_a":
         raise NotImplementedError
-    return transaction_indices
-
-
-def _get_indices_periodic(
-    start_index: int,
-    simulation_length: int,
-    simulation_width: int,
-    freq: cftypes.frequency,
-    rng: Optional[Type[default_rng]] = None,
-) -> np.ndarray:
-    """Returns periodic indices.
-
-    Parameters
-    ----------
-
-    Returns
-    -------
-    sorted_periodic_indices
-        The sorted set of periodic indices.
-
-    Examples
-    --------
-    >>> _get_indices_periodic(
-    ...     start_index=0,
-    ...     simulation_length=5,
-    ...     simulation_width=5,
-    ...     freq=2
-    ... )
-    array([0, 2, 4])
-    """
-    if isinstance(freq, int):
-        # This is a *period*.
-        # This is discrete.
-        # This will be broadcast
-        sorted_periodic_indices = range(start_index, simulation_length, freq)
-    elif isinstance(freq, float):
-        # This is a *single* float and represents a probability for
-        #   all timesteps.
-        sorted_periodic_indices = np.argwhere(
-            rng.random((simulation_length, simulation_width)) > 0
-        ).ravel()
-    elif isinstance(freq, np.ndarray) and np.issubdtype(freq.dtype, np.floating):
-        raise NotImplementedError
     else:
-        raise cfserror.InputConfigurationError("Shitass!")
-    return np.array(sorted_periodic_indices)
-
-
-# Create a memory mapped array
-# https://arrow.apache.org/docs/python/generated/pyarrow.create_memory_map.html
+        raise NotImplementedError(f"{t_type} is not a valid transaction type.")
+    return transaction_indices

@@ -37,7 +37,7 @@
 	// "forwardPorts": [],
 
 	// Uncomment the next line to run commands after the container is created - for example installing curl.
-	"postCreateCommand": "pip install -e .[dev]",
+	"postCreateCommand": "pip install -e .[dev] && echo alias tox=\\'python -m tox\\' >> /etc/bash.bashrc",
 	// "postCreateCommand": "apt-get update && apt-get install -y curl",
 
 	// Uncomment when using a ptrace-based debugger like C++, Go, and Rust

@@ -1,5 +1,6 @@
 # Testing artifacts
 .tox
+.coverage
 
 # Packaging artifacts
 *.egg-info*

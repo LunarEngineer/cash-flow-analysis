@@ -13,7 +13,6 @@ random_callables: Dict[str, Callable]
 random_kwargs: Dict[str, Any]
     These are the default keyword arguments.
 """
-from typing import Callable
 
 random_names = {
     "beta",
